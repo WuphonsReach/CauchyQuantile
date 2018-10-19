@@ -35,6 +35,7 @@ namespace CauchyQuantile.Tests
         [Theory]
 
         [InlineData(-60, -20, -10, 5.0)]
+        [InlineData(10, 20, 60, 5.0)]
 
         //[InlineData(0, 0, 60, 1.0)]
         //[InlineData(0, 10, 60, 1.0)]
@@ -70,8 +71,9 @@ namespace CauchyQuantile.Tests
 //
         public void Test_calculation(int min, int peak, int max, float gamma)
         {
-            int samplesWithinGamma = 0;
             int samplesWithinHalfGamma = 0;
+            int samplesWithinGamma = 0;
+            int samplesWithinTwiceGamma = 0;
             int totalSamples = 0;
             float? minOffset = null;
             float? maxOffset = null;
@@ -81,8 +83,9 @@ namespace CauchyQuantile.Tests
                 var offset = GetOffset(min, peak, max, gamma);
 
                 totalSamples++;
-                if (Math.Abs(offset - (float)peak) <= gamma) samplesWithinGamma++;
                 if (Math.Abs(offset - (float)peak) <= gamma/2) samplesWithinHalfGamma++;
+                if (Math.Abs(offset - (float)peak) <= gamma) samplesWithinGamma++;
+                if (Math.Abs(offset - (float)peak) <= gamma*2) samplesWithinTwiceGamma++;
 
                 if (minOffset is null || offset < minOffset) minOffset = offset;
                 if (maxOffset is null || offset > maxOffset) maxOffset = offset;
@@ -93,8 +96,9 @@ namespace CauchyQuantile.Tests
                     );
             }
 
-            var percentWithinGamma = (float)samplesWithinGamma / (float)totalSamples;
             var percentWithinHalfGamma = (float)samplesWithinHalfGamma / (float)totalSamples;
+            var percentWithinGamma = (float)samplesWithinGamma / (float)totalSamples;
+            var percentWithinTwiceGamma = (float)samplesWithinTwiceGamma / (float)totalSamples;
             Assert.True(
                 (0.45 <= percentWithinGamma && percentWithinGamma <= 0.75),
                 $"% of samples ({percentWithinGamma:P2}) within gamma:{gamma:N2} of the peak:{peak:N2} was not 45%-75%"
